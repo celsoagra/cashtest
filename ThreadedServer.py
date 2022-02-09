@@ -3,6 +3,7 @@ import socket
 import threading
 
 from Blockchain import Blockchain
+from SendedObject import SendedObject
 
 class ThreadedServer(object):
     def __init__(self, host, port):
@@ -25,11 +26,30 @@ class ThreadedServer(object):
             try:
                 data = client.recv(size)
                 if data:
-                    transaction = pickle.loads(codecs.decode(data, "base64"))
-                    print("received transaction - {}".format(transaction.hash()))
-                    Blockchain.getInstance().addTransaction(transaction)
+                    sendedObject : SendedObject = pickle.loads(codecs.decode(data, "base64"))
+                    if(sendedObject.type() == "tx"):
+                        Blockchain.getInstance().addTransaction(sendedObject.element())
+                    else:
+                        print("descartando pacotes")
                 else:
                     raise error('Client disconnected')
             except:
                 client.close()
                 return False
+
+# Mensagens
+# 
+# The “block” message transmits a single serialized block
+# - Quem recebe a mensagem, envia o bloco
+# 
+# The “getblocks” message requests an “inv” message that 
+# provides block header hashes starting from a particular point in the block chain.
+# - Recebe a mensagem de onde até onde deve enviar. Essa mensagem acaba realizando
+#   request para mensagem "inv"
+# 
+# 
+# 
+# 
+# 
+# 
+# 

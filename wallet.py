@@ -1,6 +1,7 @@
 import hashlib,binascii,codecs,base58,ecdsa
 import socket,pickle
 import threading
+from SendedObject import SendedObject
 
 from Transaction import Transaction
 
@@ -41,11 +42,8 @@ class Wallet(object):
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     def send(self, transaction):
-        """
-            Create transaction
-            sign transaction
-        """
-        pickledTransaction = codecs.encode(pickle.dumps(transaction), "base64").decode()
+        sendedObject = SendedObject("tx", transaction.hash(), transaction)
+        pickledTransaction = codecs.encode(pickle.dumps(sendedObject), "base64").decode()
 
         self._initSocket()
         self.sock.connect(("localhost", 20000))
