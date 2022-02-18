@@ -1,5 +1,8 @@
+import socket,pickle
 import hashlib,binascii,codecs,base58,ecdsa
 import hashlib
+from Inventory import Inventory
+from SendedObject import SendedObject
 from TxIn import TxIn
 from TxOut import TxOut
 from block import Block
@@ -116,14 +119,19 @@ class Blockchain:
                         skipTransaction = True
                         break
                     
-                    txFounded.listTxOutput()[txin.getOutputIndex()] = None                
+                    txFounded.listTxOutput()[txin.getOutputIndex()] = None   
+                    if (txFounded == None):
+                        Inventory.getInstance().delTx(transaction)
+
                 if (skipTransaction is False): # pula a transacao se ela for errada
                     oldTransactions.append(transaction)
+                    Inventory.getInstance().addTx(transaction)
                     blockChanged = True
                 
         else:
             for transaction in transactions: # ADDED GENESIS
                 oldTransactions.append(transaction)
+                Inventory.getInstance().addTx(transaction)
             blockChanged = True
 
         if (not blockChanged): return
@@ -134,16 +142,15 @@ class Blockchain:
 
         block = Block(previousHash, oldTransactions)
         block.print()
+        Inventory.getInstance().addBlock(block)
         self.saveOnChain(block)
-        #self._chain.append(block) # COMPARTILHAR VIA ARQUIVO DAT / PICKLE
 
     # VALIDAR GENESIS BLOCK, VALIDAR SE POSSUI RECURSOS,
     # O SOMATORIO DO TXIN/TXOUT PRECISA SER VALIDADE PRA QUE A PESSOA POSSUA DINHEIRO
     def isOperationValid(self, txIn: TxIn, txOut: TxOut):
         txInAddress = self.genAddress(txIn.getPubKey()).decode('utf8')
         if (txInAddress != txOut.pubKeyHash()):
-            return False
-        
+            return False      
 
     def genAddress(self, pubKey):
         ecdsaPublicKey = '04' + pubKey
@@ -156,6 +163,19 @@ class Blockchain:
         cheksum = hash[:8]
         appendChecksum = prependNetworkByte + cheksum
         return base58.b58encode(binascii.unhexlify(appendChecksum))
+
+    def _initSocket(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        return sock
+
+    def sendBlocks(self, ):
+        sendedObject = SendedObject("getBlocks", )
+        pickledTransaction = codecs.encode(pickle.dumps(sendedObject), "base64").decode()
+
+        self._initSocket()
+        self.sock.connect(("localhost", 20000))
+        self.sock.send(pickledTransaction.encode())
 
     def getChain(self):
         chain = []

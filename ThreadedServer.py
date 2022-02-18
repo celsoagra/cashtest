@@ -27,8 +27,20 @@ class ThreadedServer(object):
                 data = client.recv(size)
                 if data:
                     sendedObject : SendedObject = pickle.loads(codecs.decode(data, "base64"))
+                    
+                    # Must have a version message before anything else
+                    if(sendedObject.type() == "version"):
+                        """Primeira mensagem de todas"""
                     if(sendedObject.type() == "tx"):
                         Blockchain.getInstance().addTransaction(sendedObject.element())
+                    if(sendedObject.type() == "GetBlocks"):
+                        """recebe uma lista de hashes de blocos"""
+                    if(sendedObject.type() == "block"):
+                        """recebe um bloco minerado"""
+                    if(sendedObject.type() == "getData"):
+                        """recebe uma solicitacao p enviar algum elemento"""
+                    if(sendedObject.type() == "inv"):
+                        """recebe um inventario, com blocos e tx"""
                     else:
                         print("descartando pacotes")
                 else:

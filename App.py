@@ -1,4 +1,5 @@
 from Blockchain import Blockchain
+from Inventory import Inventory
 from ThreadedServer import ThreadedServer
 from Transaction import Transaction
 from TxIn import TxIn
@@ -41,6 +42,8 @@ def main():
 
     time.sleep(20)
     print("balance: {}".format(blockchain.balance(wallet)))
+    print(Inventory.getInstance().getBlockHashes())
+    print(Inventory.getInstance().getTxHashes())
     
 def _initServer(host, port):
     ThreadedServer(host, port).listen()
